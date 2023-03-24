@@ -8,8 +8,8 @@ Resources:
       KeyName: django-web-application
       SubnetId: subnet-054914e4f65325949
       AvailabilityZone: us-east-1a
-      SecurityGroups:
-        - !Ref DjangoSG
+      SecurityGroupIds:
+       - !Ref DjangoSG
       IamInstanceProfile: !Ref RootInstanceProfile
       UserData:
         Fn::Base64:
