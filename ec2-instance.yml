@@ -20,7 +20,7 @@ Resources:
             yum -y install python3 git
             pip install django
             django-admin startproject mysite
-            python3 manage.py runserver
+            python3 manage.py runserver localhost:80
 
       Volumes:
         - Device: /dev/sdm
