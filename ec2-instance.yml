@@ -17,9 +17,8 @@ Resources:
         sudo yum -y install openssl-devel bzip2-devel libffi-devel
         sudo yum -y install python3 git
         pip install django
-        git clone https://github.com/bavugisainath/codepipeline-test-repo.git
-        cd codepipeline-test-repo/mysite
-        python manage.py runserver
+        django-admin startproject mysite
+        python3 manage.py runserver
 
       Volumes:
         - Device: "/dev/sdm"
