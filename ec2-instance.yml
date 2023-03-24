@@ -36,7 +36,7 @@ Resources:
       GroupName: django-web-sg
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 8000
+          FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
@@ -44,9 +44,7 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+        - IpProtocol: "-1"
           CidrIp: 0.0.0.0/0
       VpcId: vpc-00930bc47f9c65694
 
