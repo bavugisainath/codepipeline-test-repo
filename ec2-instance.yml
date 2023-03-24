@@ -11,14 +11,15 @@ Resources:
       SecurityGroups: !Ref DjangoSG
       IamInstanceProfile: !Ref RootInstanceProfile
       UserData: 
-        Fn::Base64: !Sub |
-        #!/bin/bash -xe
-        sudo yum -y groupinstall "Development Tools"
-        sudo yum -y install openssl-devel bzip2-devel libffi-devel
-        sudo yum -y install python3 git
-        pip install django
-        django-admin startproject mysite
-        python3 manage.py runserver
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum -y groupinstall "Development Tools"
+            yum -y install openssl-devel bzip2-devel libffi-devel
+            yum -y install python3 git
+            pip install django
+            django-admin startproject mysite
+            python3 manage.py runserver
 
       Volumes:
         - Device: "/dev/sdm"
