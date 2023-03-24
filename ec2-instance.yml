@@ -1,17 +1,18 @@
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
   DjangoEC2Instance:
-    Type: 'AWS::EC2::Instance'
+    Type: AWS::EC2::Instance
     Properties:
       ImageId: ami-04581fbf744a7d11f
-      InstanceType: "t2.micro"
-      KeyName: "django-web-application"
-      SubnetId: "subnet-054914e4f65325949"
-      AvailabilityZone: 'us-east-1a'
-      SecurityGroups: !Ref DjangoSG
+      InstanceType: t2.micro
+      KeyName: django-web-application
+      SubnetId: subnet-054914e4f65325949
+      AvailabilityZone: us-east-1a
+      SecurityGroups:
+        - !Ref DjangoSG
       IamInstanceProfile: !Ref RootInstanceProfile
-      UserData: 
-        Fn::Base64: 
+      UserData:
+        Fn::Base64:
           !Sub |
             #!/bin/bash
             yum -y groupinstall "Development Tools"
@@ -22,7 +23,7 @@ Resources:
             python3 manage.py runserver
 
       Volumes:
-        - Device: "/dev/sdm"
+        - Device: /dev/sdm
           VolumeId: !Ref DjangoVolume
       Tags:
         - Key: "Name"
@@ -53,7 +54,7 @@ Resources:
       AvailabilityZone: 'us-east-1a'
 
   DjangoIAMRole:
-    Type: 'AWS::IAM::Role'
+    Type: AWS::IAM::Role
     Properties:
       RoleName: django-web-application-ec2-role
       AssumeRolePolicyDocument:
@@ -71,7 +72,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
 
   RootInstanceProfile:
-      Type: 'AWS::IAM::InstanceProfile'
+      Type: AWS::IAM::InstanceProfile
       Properties:
         Path: /
         Roles:
