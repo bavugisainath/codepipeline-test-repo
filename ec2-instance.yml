@@ -15,11 +15,13 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash
-            yum -y groupinstall "Development Tools"
-            yum -y install openssl-devel bzip2-devel libffi-devel
-            yum -y install python3 git
-            pip install django
+            sudo yum -y groupinstall "Development Tools"
+            sudo yum -y install openssl-devel bzip2-devel libffi-devel
+            sudo yum -y install python3 git
+            pip3 install Django==2.1.*
+            cd /home/ec2-user/
             django-admin startproject mysite
+            cd mysite
             python3 manage.py runserver localhost:80
 
       Volumes:
