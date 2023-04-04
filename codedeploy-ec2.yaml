@@ -54,6 +54,9 @@ Parameters:
     AllowedValues:
       - Linux
       - Windows
+  Environment:
+    Type: String
+    Default: dev
   SSHLocation:
     Description: >-
       The IP address range that can be used to connect using SSH or RDP to the
@@ -107,6 +110,11 @@ Conditions:
     - !Condition LaunchWindowsEC2Instance1
     - !Condition LaunchInstance3
 Resources:
+  CodeDeployApplication: 
+    ApplicationName: !Sub CodeDeploy-${Environment}
+    Type: AWS::CodeDeploy::Application 
+    Properties:
+      ComputePlatform: Server
   LinuxEC2Instance:
     Type: 'AWS::EC2::Instance'
     Condition: LaunchLinuxEC2Instance1
@@ -503,7 +511,7 @@ Resources:
             - |
               yum update -y aws-cfn-bootstrap
             - |
-              yum install -y aws-cli
+              yum install -y aws-cli python38
             - |
               # Helper function.
             - |
