@@ -661,7 +661,7 @@ Resources:
           Value: !Ref TagValue
       IamInstanceProfile: !Ref InstanceRoleInstanceProfile
 Outputs:
-  CodeDeployTrustRoleARN:
+  InstanceRoleTrustRoleARN:
     Value: !GetAtt 
-      - CodeDeployTrustRole
+      - InstanceRole
       - Arn
