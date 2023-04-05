@@ -57,6 +57,12 @@ Parameters:
   Environment:
     Type: String
     Default: dev
+  VpcId:
+    Type: String
+  PubSubnetZoneA:
+    Type: String
+  PubSubnetZoneB:
+    Type: String
   SSHLocation:
     Description: >-
       The IP address range that can be used to connect using SSH or RDP to the
@@ -81,7 +87,7 @@ Mappings:
     Windows:
       SSHPort: '3389'
 Conditions:
-  LaunchInstance2: !Or 
+  LaunchInstance2: !Or
     - !Equals 
       - '2'
       - !Ref InstanceCount
@@ -268,11 +274,14 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: Enable HTTP access via port 80 and SSH access.
+      VpcId:
+        Ref: VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
+          FromPort: '8080'
+          ToPort: '8080'
+          SourceSecurityGroupId:
+            Ref: ELBSecurityGroup
         - IpProtocol: tcp
           FromPort: !FindInMap 
             - OS2SSHPort
@@ -283,43 +292,66 @@ Resources:
             - !Ref OperatingSystem
             - SSHPort
           CidrIp: !Ref SSHLocation
-  CodeDeployTrustRole:
-    Type: 'AWS::IAM::Role'
+  ELBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Sid: '1'
-            Effect: Allow
-            Principal:
-              Service:
-                - codedeploy.us-east-1.amazonaws.com
-                - codedeploy.us-west-2.amazonaws.com
-            Action: 'sts:AssumeRole'
-      RoleName: !Sub CodeDeployRole-${Environment}
-      Path: /
-  CodeDeployRolePolicies:
-    Type: 'AWS::IAM::Policy'
+        GroupDescription: 'Port 80'
+        VpcId:
+          Ref: VpcId
+        SecurityGroupIngress:
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              CidrIp: !Ref SSHLocation
+  EC2TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      PolicyName: !Sub CodeDeployPolicy-${Environment}
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Resource:
-              - '*'
-            Action:
-              - 'ec2:Describe*'
-          - Effect: Allow
-            Resource:
-              - '*'
-            Action:
-              - 'autoscaling:CompleteLifecycleAction'
-              - 'autoscaling:DeleteLifecycleHook'
-              - 'autoscaling:DescribeLifecycleHooks'
-              - 'autoscaling:DescribeAutoScalingGroups'
-              - 'autoscaling:PutLifecycleHook'
-              - 'autoscaling:RecordLifecycleActionHeartbeat'
-      Roles:
-        - !Ref CodeDeployTrustRole
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 5
+      Matcher:
+        HttpCode: '200'
+      Name: !Sub EC2TargetGroup-${Environment}
+      Port: 8080
+      Protocol: HTTP
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      Targets:
+      - Id:
+          Ref: LinuxEC2Instance
+        Port: 8080
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: VpcId
+      Tags:
+      - Key: Name
+        Value: EC2TargetGroup
+      - Key: Port
+        Value: 80
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: EC2TargetGroup
+      LoadBalancerArn:
+          Ref: ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub CodeDeploy-ALB-${Environment}
+      Scheme: internet-facing # or internal
+      Subnets:
+        - Ref: PubSubnetZoneA
+        - Ref: PubSubnetZoneB
+      SecurityGroups:
+      - Ref: ELBSecurityGroup
+
   InstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:

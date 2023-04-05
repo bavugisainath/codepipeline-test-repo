@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  Environment:
+      Type: String
+      Default: dev
+Resources:
+  CodeDeployTrustRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Sid: '1'
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub CodeDeployRole-${Environment}
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Path: /
+  # CodeDeployRolePolicies:
+  #   Type: 'AWS::IAM::Policy'
+  #   Properties:
+  #     PolicyName: !Sub CodeDeployPolicy-${Environment}
+  #     PolicyDocument:
+  #       Statement:
+  #         - Effect: Allow
+  #           Resource:
+  #             - '*'
+  #           Action:
+  #             - 'ec2:Describe*'
+  #         - Effect: Allow
+  #           Resource:
+  #             - '*'
+  #           Action:
+  #             - 'autoscaling:CompleteLifecycleAction'
+  #             - 'autoscaling:DeleteLifecycleHook'
+  #             - 'autoscaling:DescribeLifecycleHooks'
+  #             - 'autoscaling:DescribeAutoScalingGroups'
+  #             - 'autoscaling:PutLifecycleHook'
+  #             - 'autoscaling:RecordLifecycleActionHeartbeat'
+  #     Roles:
+  #       - !Ref CodeDeployTrustRole
+  CodeDeployApplication:
+    Type: 'AWS::CodeDeploy::Application'
+    Properties:
+        ApplicationName: !Sub CodeDeploy-${Environment}
+        ComputePlatform: Server
+  CodeDeployDG:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref CodeDeployApplication
+      DeploymentGroupName: !Sub CodeDeploy-DG-${Environment}
+      DeploymentConfigName: !Sub CodeDeploy-DG-${Environment}
+      ServiceRoleArn: !Ref CodeDeployTrustRole
+      DeploymentStyle:
+        DeploymentType: IN_PLACE
+      Ec2TagFilters: 
+        - Key: Name
+          Value: !Sub CodeDeploy-EC2-${Environment}
+          Type: "KEY_AND_VALUE"
+      LoadBalancerInfo:
+        ElbInfoList:
+          - Name: !Sub CodeDeploy-ALB-${Environment}
+        TargetGroupInfoList:
+          - Name: !Sub EC2TargetGroup-${Environment}
+
