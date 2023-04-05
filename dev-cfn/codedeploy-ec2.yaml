@@ -274,14 +274,11 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: Enable HTTP access via port 80 and SSH access.
-      VpcId:
-        Ref: VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '8080'
           ToPort: '8080'
-          SourceSecurityGroupId:
-            Ref: ELBSecurityGroup
+          CidrIp: !Ref SSHLocation
         - IpProtocol: tcp
           FromPort: !FindInMap 
             - OS2SSHPort
