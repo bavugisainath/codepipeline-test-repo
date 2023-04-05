@@ -110,11 +110,16 @@ Conditions:
     - !Condition LaunchWindowsEC2Instance1
     - !Condition LaunchInstance3
 Resources:
-  CodeDeployApplication: 
-    ApplicationName: !Sub CodeDeploy-${Environment}
-    Type: AWS::CodeDeploy::Application 
-    Properties:
-      ComputePlatform: Server
+  # CodeDeployApplication:
+  #   Type: AWS::CodeDeploy::Application
+  #   Properties:
+  #     ApplicationName: !Sub CodeDeploy-${Environment}
+  #     ComputePlatform: Server
+  # CodeDeployDG:
+  #   Type: AWS::CodeDeploy::DeploymentConfig
+  #   Properties:
+  #     ComputePlatform: Server
+  #     DeploymentConfigName: !Sub CodeDeploy-DG-${Environment}
   LinuxEC2Instance:
     Type: 'AWS::EC2::Instance'
     Condition: LaunchLinuxEC2Instance1
@@ -290,11 +295,12 @@ Resources:
                 - codedeploy.us-east-1.amazonaws.com
                 - codedeploy.us-west-2.amazonaws.com
             Action: 'sts:AssumeRole'
+      RoleName: !Sub CodeDeployRole-${Environment}
       Path: /
   CodeDeployRolePolicies:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: CodeDeployPolicy
+      PolicyName: !Sub CodeDeployPolicy-${Environment}
       PolicyDocument:
         Statement:
           - Effect: Allow
@@ -327,11 +333,12 @@ Resources:
               - 'sts:AssumeRole'
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      RoleName: !Sub Ec2Role-${Environment}
       Path: /
   InstanceRolePolicies:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: InstanceRole
+      PolicyName: !Sub InstanceRole-${Environment}
       PolicyDocument:
         Statement:
           - Effect: Allow
