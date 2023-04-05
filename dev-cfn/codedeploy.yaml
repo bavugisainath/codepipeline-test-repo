@@ -52,7 +52,6 @@ Resources:
     Properties:
       ApplicationName: !Ref CodeDeployApplication
       DeploymentGroupName: !Sub CodeDeploy-DG-${Environment}
-      DeploymentConfigName: !Sub CodeDeploy-DG-${Environment}
       ServiceRoleArn: !Ref CodeDeployTrustRole
       DeploymentStyle:
         DeploymentType: IN_PLACE
